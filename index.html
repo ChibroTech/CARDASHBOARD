@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Car Sales Dashboard</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* ===================================================
+       CSS STYLES
+       =================================================== */
+
+    /* ROOT VARIABLES */
+    :root {
+      --blackish: #2D2D2B;
+      --powder: #F0E4D8;
+      --off-white: #F6F5F0;
+      --supple: #C39E9E;
+      --faded-pink: #F6F0F1;
+
+      --text-dark: #2D2D2B;
+      --text-light: #F6F5F0;
+      --text-muted: #8B7D7D;
+
+      --bg-main: #F6F5F0;
+      --bg-card: #FFFFFF;
+      --bg-dark: #2D2D2B;
+
+      --accent-primary: #C39E9E;
+      --accent-secondary: #A67C7C;
+      --accent-light: #F6F0F1;
+
+      --border-light: #E8DED2;
+      --border-medium: #D5C4B8;
+
+      --spacing-xs: 8px;
+      --spacing-sm: 12px;
+      --spacing-md: 20px;
+      --spacing-lg: 30px;
+      --spacing-xl: 40px;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+    }
+
+    /* GLOBAL RESET */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* BODY */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-dark);
+      padding: var(--spacing-lg);
+      line-height: 1.6;
+      scroll-behavior: smooth;
+    }
+
+    /* HEADINGS */
+    h1 {
+      text-align: center;
+      color: var(--blackish);
+      margin-bottom: var(--spacing-xl);
+      font-size: 2.5rem;
+      font-weight: 300;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    h1::after {
+      content: '';
+      display: block;
+      width: 100px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--supple), var(--powder));
+      margin: 15px auto 0;
+      border-radius: 2px;
+    }
+
+    /* ===================================================
+       DASHBOARD CONTROLS
+       =================================================== */
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-md);
+      justify-content: center;
+      align-items: center;
+      background: var(--bg-card);
+      padding: var(--spacing-lg);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--spacing-xl);
+      border: 2px solid var(--border-light);
+      box-shadow: 0 4px 20px rgba(45, 45, 43, 0.08);
+    }
+
+    .controls label {
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-right: 8px;
+    }
+
+    .controls input,
+    .controls select {
+      padding: 12px 16px;
+      min-width: 150px;
+      background: var(--faded-pink);
+      color: var(--text-dark);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
+
+    .controls input:focus,
+    .controls select:focus {
+      outline: none;
+      border-color: var(--supple);
+      background: var(--off-white);
+      box-shadow: 0 0 0 3px rgba(195, 158, 158, 0.15);
+    }
+
+    .controls input::placeholder {
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
+
+    .controls button {
+      padding: 12px 40px;
+      background: linear-gradient(135deg, var(--supple), var(--accent-secondary));
+      color: var(--text-light);
+      border: none;
+      border-radius: 25px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(195, 158, 158, 0.3);
+    }
+
+    .controls button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(195, 158, 158, 0.4);
+      background: linear-gradient(135deg, var(--accent-secondary), var(--supple));
+    }
+
+    .controls button:active {
+      transform: translateY(0);
+    }
+
+    /* ===================================================
+       STATISTICS SUMMARY CARDS
+       =================================================== */
+
+    .stats-summary {
+      display: flex;
+      justify-content: center;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-xl);
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      min-width: 200px;
+      padding: var(--spacing-lg);
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      border: 2px solid var(--border-light);
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(45, 45, 43, 0.06);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--supple), var(--powder));
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(45, 45, 43, 0.12);
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 300;
+      color: var(--supple);
+      margin-bottom: var(--spacing-xs);
+      letter-spacing: -1px;
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 500;
+    }
+
+    /* ===================================================
+       CHARTS SECTION
+       =================================================== */
+
+    .charts {
+      display: flex;
+      justify-content: center;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-xl);
+      flex-wrap: wrap;
+    }
+
+    .chart-box {
+      width: calc(50% - var(--spacing-md) / 2);
+      min-width: 350px;
+      height: 400px;
+      background: var(--bg-card);
+      padding: var(--spacing-lg);
+      border-radius: var(--radius-lg);
+      border: 2px solid var(--border-light);
+      box-shadow: 0 2px 12px rgba(45, 45, 43, 0.06);
+      transition: box-shadow 0.3s ease;
+      position: relative;
+    }
+
+    .chart-box-full {
+      width: 100%;
+      min-width: 100%;
+      height: 500px;
+      background: var(--bg-card);
+      padding: var(--spacing-lg);
+      border-radius: var(--radius-lg);
+      border: 2px solid var(--border-light);
+      box-shadow: 0 2px 12px rgba(45, 45, 43, 0.06);
+      transition: box-shadow 0.3s ease;
+      position: relative;
+      margin-top: var(--spacing-md);
+    }
+
+    .chart-box:hover,
+    .chart-box-full:hover {
+      box-shadow: 0 6px 20px rgba(45, 45, 43, 0.1);
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* ===================================================
+       PAGINATION CONTROLS
+       =================================================== */
+
+    .pagination-container {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-card);
+      padding: var(--spacing-md);
+      border-radius: var(--radius-lg);
+      border: 2px solid var(--border-light);
+      margin-bottom: var(--spacing-md);
+      box-shadow: 0 2px 12px rgba(45, 45, 43, 0.06);
+      flex-wrap: wrap;
+      gap: var(--spacing-md);
+    }
+
+    .pagination-info {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .pagination-controls {
+      display: flex;
+      gap: var(--spacing-xs);
+      align-items: center;
+    }
+
+    .pagination-btn {
+      padding: 8px 16px;
+      background: var(--faded-pink);
+      color: var(--text-dark);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      background: var(--supple);
+      color: var(--text-light);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(195, 158, 158, 0.3);
+    }
+
+    .pagination-btn.active {
+      background: linear-gradient(135deg, var(--supple), var(--accent-secondary));
+      color: var(--text-light);
+      border-color: var(--supple);
+      font-weight: 600;
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .pagination-per-page {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+    }
+
+    .pagination-per-page label {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .pagination-per-page select {
+      padding: 6px 12px;
+      background: var(--faded-pink);
+      color: var(--text-dark);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      cursor: pointer;
+      min-width: 80px;
+    }
+
+    /* ===================================================
+       TABLE SECTION
+       =================================================== */
+
+    .table-container {
+      width: 100%;
+      max-width: 100%;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 2px solid var(--border-light);
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(45, 45, 43, 0.06);
+      overflow-x: auto;
+      margin-top: var(--spacing-xl);
+    }
+
+    table {
+      width: 100%;
+      min-width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 16px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    th {
+      background: linear-gradient(135deg, var(--powder), var(--faded-pink));
+      color: var(--text-dark);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-size: 0.75rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    tbody tr {
+      transition: background-color 0.2s ease;
+    }
+
+    tbody tr:hover {
+      background-color: var(--faded-pink);
+    }
+
+    td {
+      color: var(--text-dark);
+      font-size: 0.9rem;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: var(--spacing-xl);
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      font-style: italic;
+    }
+
+    /* ===================================================
+       RESPONSIVE DESIGN
+       =================================================== */
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.8rem;
+        letter-spacing: 1.5px;
+      }
+
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .controls input,
+      .controls select {
+        width: 100%;
+        min-width: unset;
+      }
+
+      .stat-card {
+        width: 100%;
+      }
+
+      .chart-box,
+      .chart-box-full {
+        width: 100%;
+        min-width: unset;
+        height: 350px;
+      }
+
+      .pagination-container {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .pagination-controls {
+        justify-content: center;
+      }
+
+      th,
+      td {
+        padding: 10px 12px;
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ===================================================
+       HTML STRUCTURE
+       =================================================== -->
+
+  <h1>Car Sales Dashboard</h1>
+
+  <!-- ===================================================
+       FILTER CONTROLS
+       =================================================== -->
+  <div class="controls">
+    <label>Model:</label>
+    <input type="text" id="modelName" placeholder="Enter model name">
+
+    <label>Manufacturer:</label>
+    <select id="manufacturer">
+      <option value="">All Manufacturers</option>
+    </select>
+
+    <label>Fuel Type:</label>
+    <select id="fuelType">
+      <option value="">All Fuel Types</option>
+      <option value="Petrol">Petrol</option>
+      <option value="Diesel">Diesel</option>
+      <option value="Hybrid">Hybrid</option>
+    </select>
+
+    <label>Min Year:</label>
+    <input type="number" id="minYear" placeholder="2000" min="1900" max="2025">
+
+    <label>Max Year:</label>
+    <input type="number" id="maxYear" placeholder="2025" min="1900" max="2025">
+
+    <label>Min Price ($):</label>
+    <input type="number" id="minPrice" placeholder="0" min="0">
+
+    <label>Max Price ($):</label>
+    <input type="number" id="maxPrice" placeholder="100000" min="0">
+
+    <label>Sort by Price:</label>
+    <select id="sortOrder">
+      <option value="">No Sort</option>
+      <option value="asc">Low → High</option>
+      <option value="desc">High → Low</option>
+    </select>
+
+    <button onclick="loadDashboard()">Search</button>
+  </div>
+
+  <!-- ===================================================
+       STATISTICS SUMMARY
+       =================================================== -->
+  <div class="stats-summary">
+    <div class="stat-card">
+      <div class="stat-value" id="totalCars">0</div>
+      <div class="stat-label">Total Cars</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-value" id="avgPrice">$0</div>
+      <div class="stat-label">Average Price</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-value" id="avgMileage">0</div>
+      <div class="stat-label">Avg Mileage</div>
+    </div>
+  </div>
+
+  <!-- ===================================================
+       CHARTS
+       =================================================== -->
+  <div class="charts">
+    <div class="chart-box">
+      <canvas id="barChart"></canvas>
+    </div>
+
+    <div class="chart-box">
+      <canvas id="pieChart"></canvas>
+    </div>
+
+    <div class="chart-box-full">
+      <canvas id="dealerChart"></canvas>
+    </div>
+
+    <!-- ===================================================
+         PAGINATION CONTROLS
+         =================================================== -->
+    <div class="pagination-container">
+      <div class="pagination-info" id="paginationInfo">
+        Showing 0 - 0 of 0 results
+      </div>
+
+      <div class="pagination-controls" id="paginationControls">
+      </div>
+
+      <div class="pagination-per-page">
+        <label>Results per page:</label>
+        <select id="resultsPerPage" onchange="changeResultsPerPage()">
+          <option value="10">10</option>
+          <option value="20" selected>20</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ===================================================
+         DATA TABLE
+         =================================================== -->
+    <div class="table-container">
+      <table id="carsTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Model</th>
+            <th>Manufacturer</th>
+            <th>Year</th>
+            <th>Fuel Type</th>
+            <th>Engine Size</th>
+            <th>Mileage</th>
+            <th>Price ($)</th>
+            <th>Dealer City</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+      /* ===================================================
+         JAVASCRIPT CODE
+         =================================================== */
+
+      /* GLOBAL VARIABLES */
+      let barChart = null;
+      let pieChart = null;
+      let dealerChart = null;
+      let allManufacturers = new Set();
+
+      /* PAGINATION VARIABLES */
+      let currentPage = 1;
+      let paginationData = {
+        totalPages: 1,
+        totalResults: 0,
+        currentPage: 1,
+        resultsPerPage: 20,
+        hasPrevPage: false,
+        hasNextPage: false
+      };
+
+      /* ===================================================
+         FUNCTION: buildQueryString()
+         =================================================== */
+      function buildQueryString() {
+        const model = document.getElementById("modelName").value.trim();
+        const manufacturer = document.getElementById("manufacturer").value;
+        const fuelType = document.getElementById("fuelType").value;
+        const minYear = document.getElementById("minYear").value;
+        const maxYear = document.getElementById("maxYear").value;
+        const minPrice = document.getElementById("minPrice").value;
+        const maxPrice = document.getElementById("maxPrice").value;
+        const sortOrder = document.getElementById('sortOrder').value;
+        const resultsPerPage = document.getElementById('resultsPerPage').value;
+
+        const params = new URLSearchParams();
+
+        if (model) params.append("model", model);
+        if (manufacturer) params.append("manufacturer", manufacturer);
+        if (fuelType) params.append("fuelType", fuelType);
+        if (minYear) params.append("minYear", minYear);
+        if (maxYear) params.append("maxYear", maxYear);
+        if (minPrice) params.append("minPrice", minPrice);
+        if (maxPrice) params.append("maxPrice", maxPrice);
+        if (sortOrder) params.append('sort', sortOrder);
+
+        params.append('page', currentPage);
+        params.append('limit', resultsPerPage);
+
+        return params.toString() ? `?${params.toString()}` : "";
+      }
+
+      /* ===================================================
+         FUNCTION: loadDashboard()
+         =================================================== */
+      async function loadDashboard() {
+        const queryString = buildQueryString();
+
+        try {
+          const res = await fetch(`/cars${queryString}`);
+          const data = await res.json();
+          const cars = data.cars;
+
+          paginationData = data.pagination;
+
+          updateStats(cars);
+          updateCharts(cars);
+          updateTable(cars);
+          updatePagination();
+
+        } catch (err) {
+          console.error('Error fetching data:', err);
+        }
+      }
+
+      /* ===================================================
+         FUNCTION: goToPage(pageNumber)
+         =================================================== */
+      function goToPage(pageNumber) {
+        currentPage = pageNumber;
+        loadDashboard();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      /* ===================================================
+         FUNCTION: changeResultsPerPage()
+         =================================================== */
+      function changeResultsPerPage() {
+        currentPage = 1;
+        loadDashboard();
+      }
+
+      /* ===================================================
+         FUNCTION: updatePagination()
+         =================================================== */
+      function updatePagination() {
+        const startResult = (paginationData.currentPage - 1) * paginationData.resultsPerPage + 1;
+        const endResult = Math.min(
+          paginationData.currentPage * paginationData.resultsPerPage,
+          paginationData.totalResults
+        );
+
+        const paginationInfo = document.getElementById('paginationInfo');
+
+        if (paginationData.totalResults === 0) {
+          paginationInfo.textContent = 'No results found';
+        } else {
+          paginationInfo.textContent =
+            `Showing ${startResult} - ${endResult} of ${paginationData.totalResults} results`;
+        }
+
+        const paginationControls = document.getElementById('paginationControls');
+        paginationControls.innerHTML = '';
+
+        if (paginationData.totalResults === 0 || paginationData.totalPages === 1) {
+          return;
+        }
+
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = '← Previous';
+        prevBtn.className = 'pagination-btn';
+        prevBtn.disabled = !paginationData.hasPrevPage;
+        prevBtn.onclick = () => goToPage(paginationData.prevPage);
+        paginationControls.appendChild(prevBtn);
+
+        const maxButtons = 5;
+        let startPage = Math.max(1, paginationData.currentPage - 2);
+        let endPage = Math.min(paginationData.totalPages, startPage + maxButtons - 1);
+
+        if (endPage - startPage < maxButtons - 1) {
+          startPage = Math.max(1, endPage - maxButtons + 1);
+        }
+
+        if (startPage > 1) {
+          const firstBtn = createPageButton(1);
+          paginationControls.appendChild(firstBtn);
+
+          if (startPage > 2) {
+            const ellipsis = document.createElement('span');
+            ellipsis.textContent = '...';
+            ellipsis.style.padding = '8px';
+            ellipsis.style.color = 'var(--text-muted)';
+            paginationControls.appendChild(ellipsis);
+          }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+          const pageBtn = createPageButton(i);
+          paginationControls.appendChild(pageBtn);
+        }
+
+        if (endPage < paginationData.totalPages) {
+          if (endPage < paginationData.totalPages - 1) {
+            const ellipsis = document.createElement('span');
+            ellipsis.textContent = '...';
+            ellipsis.style.padding = '8px';
+            ellipsis.style.color = 'var(--text-muted)';
+            paginationControls.appendChild(ellipsis);
+          }
+
+          const lastBtn = createPageButton(paginationData.totalPages);
+          paginationControls.appendChild(lastBtn);
+        }
+
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = 'Next →';
+        nextBtn.className = 'pagination-btn';
+        nextBtn.disabled = !paginationData.hasNextPage;
+        nextBtn.onclick = () => goToPage(paginationData.nextPage);
+        paginationControls.appendChild(nextBtn);
+      }
+
+      /* ===================================================
+         FUNCTION: createPageButton(pageNumber)
+         =================================================== */
+      function createPageButton(pageNumber) {
+        const btn = document.createElement('button');
+        btn.textContent = pageNumber;
+        btn.className = 'pagination-btn';
+
+        if (pageNumber === paginationData.currentPage) {
+          btn.classList.add('active');
+        }
+
+        btn.onclick = () => goToPage(pageNumber);
+        return btn;
+      }
+
+      /* ===================================================
+         FUNCTION: updateStats(cars)
+         =================================================== */
+      function updateStats(cars) {
+        document.getElementById('totalCars').textContent = paginationData.totalResults;
+
+        if (cars.length > 0) {
+          const avgPrice = cars.reduce((sum, car) => sum + car.Price, 0) / cars.length;
+          document.getElementById('avgPrice').textContent =
+            '$' + Math.round(avgPrice).toLocaleString();
+
+          const avgMileage = cars.reduce((sum, car) => sum + car.Mileage, 0) / cars.length;
+          document.getElementById('avgMileage').textContent =
+            Math.round(avgMileage).toLocaleString();
+        } else {
+          document.getElementById('avgPrice').textContent = '$0';
+          document.getElementById('avgMileage').textContent = '0';
+        }
+      }
+
+      /* ===================================================
+         FUNCTION: updateCharts(cars)
+         =================================================== */
+      function updateCharts(cars) {
+        const manufacturer = document.getElementById("manufacturer").value;
+
+        if (!manufacturer) {
+          updateBarChartByManufacturer(cars);
+          updatePieChartByFuelType(cars);
+        } else {
+          updateBarChartByModel(cars, manufacturer);
+          updatePieChartByModel(cars, manufacturer);
+        }
+        updateDealerChart(cars);
+      }
+
+      /* ===================================================
+         FUNCTION: updateBarChartByManufacturer(cars)
+         =================================================== */
+      function updateBarChartByManufacturer(cars) {
+        const countByManufacturer = {};
+
+        cars.forEach(car => {
+          const mfr = car.Manufacturer.Manufacturer;
+          if (!countByManufacturer[mfr]) countByManufacturer[mfr] = 0;
+          countByManufacturer[mfr]++;
+        });
+
+        const labels = Object.keys(countByManufacturer);
+        const values = Object.values(countByManufacturer);
+
+        renderBarChart(labels, values, 'Car Inventory by Manufacturer');
+      }
+
+      /* ===================================================
+         FUNCTION: updateBarChartByModel(cars, manufacturer)
+         =================================================== */
+      function updateBarChartByModel(cars, manufacturer) {
+        const countByModel = {};
+
+        cars.forEach(car => {
+          if (!countByModel[car.Model]) countByModel[car.Model] = 0;
+          countByModel[car.Model]++;
+        });
+
+        const labels = Object.keys(countByModel);
+        const values = Object.values(countByModel);
+
+        renderBarChart(labels, values, `Car Inventory in "${manufacturer}"`);
+      }
+
+      /* ===================================================
+         FUNCTION: renderBarChart(labels, values, title)
+         =================================================== */
+      function renderBarChart(labels, values, title) {
+        const ctx = document.getElementById('barChart').getContext('2d');
+
+        if (barChart) barChart.destroy();
+
+        barChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Number of Cars',
+              data: values,
+              backgroundColor: 'rgba(195, 158, 158, 0.7)',
+              borderColor: 'rgba(166, 124, 124, 1)',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              },
+              title: {
+                display: true,
+                text: title,
+                font: {
+                  size: 18,
+                  weight: '300'
+                },
+                color: '#2D2D2B'
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Number of Cars',
+                  color: '#8B7D7D'
+                },
+                ticks: {
+                  color: '#8B7D7D'
+                },
+                grid: {
+                  color: 'rgba(232, 222, 210, 0.5)'
+                }
+              },
+              x: {
+                ticks: {
+                  maxRotation: 45,
+                  minRotation: 45,
+                  color: '#8B7D7D'
+                },
+                grid: {
+                  color: 'rgba(232, 222, 210, 0.5)'
+                }
+              }
+            }
+          }
+        });
+      }
+
+      /* ===================================================
+         FUNCTION: updatePieChartByFuelType(cars)
+         =================================================== */
+      function updatePieChartByFuelType(cars) {
+        const countByFuelType = {};
+
+        cars.forEach(car => {
+          if (!countByFuelType[car.FuelType]) countByFuelType[car.FuelType] = 0;
+          countByFuelType[car.FuelType]++;
+        });
+
+        const labels = Object.keys(countByFuelType);
+        const values = Object.values(countByFuelType);
+
+        renderPieChart(labels, values, 'Distribution by Fuel Type');
+      }
+
+      /* ===================================================
+         FUNCTION: updatePieChartByModel(cars, manufacturer)
+         =================================================== */
+      function updatePieChartByModel(cars, manufacturer) {
+        const countByModel = {};
+
+        cars.forEach(car => {
+          if (!countByModel[car.Model]) countByModel[car.Model] = 0;
+          countByModel[car.Model]++;
+        });
+
+        const labels = Object.keys(countByModel);
+        const values = Object.values(countByModel);
+
+        renderPieChart(labels, values, `Model Distribution in "${manufacturer}"`);
+      }
+
+      /* ===================================================
+         FUNCTION: renderPieChart(labels, values, title)
+         =================================================== */
+      function renderPieChart(labels, values, title) {
+        const ctx = document.getElementById('pieChart').getContext('2d');
+
+        if (pieChart) pieChart.destroy();
+
+        const warmColors = [
+          'rgba(195, 158, 158, 0.8)',
+          'rgba(240, 228, 216, 0.8)',
+          'rgba(166, 124, 124, 0.8)',
+          'rgba(246, 240, 241, 0.8)',
+          'rgba(213, 196, 184, 0.8)',
+          'rgba(175, 140, 140, 0.8)',
+        ];
+
+        pieChart = new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Count',
+              data: values,
+              backgroundColor: warmColors,
+              borderWidth: 2,
+              borderColor: '#F6F5F0'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'right',
+                labels: {
+                  font: { size: 11 },
+                  color: '#2D2D2B',
+                  padding: 15
+                }
+              },
+              title: {
+                display: true,
+                text: title,
+                font: {
+                  size: 18,
+                  weight: '300'
+                },
+                color: '#2D2D2B'
+              }
+            }
+          }
+        });
+      }
+
+      /* ===================================================
+         FUNCTION: updateDealerChart(cars)
+         =================================================== */
+      function updateDealerChart(cars) {
+        const countByDealer = {};
+
+        cars.forEach(car => {
+          const dealerCity = car.Dealer.DealerCity;
+          if (!countByDealer[dealerCity]) countByDealer[dealerCity] = 0;
+          countByDealer[dealerCity]++;
+        });
+
+        const dealerEntries = Object.entries(countByDealer);
+        dealerEntries.sort((a, b) => b[1] - a[1]);
+        const top10Dealers = dealerEntries.slice(0, 10);
+
+        const labels = top10Dealers.map(entry => entry[0]);
+        const values = top10Dealers.map(entry => entry[1]);
+
+        renderDealerChart(labels, values);
+      }
+
+      /* ===================================================
+         FUNCTION: renderDealerChart(labels, values)
+         =================================================== */
+      function renderDealerChart(labels, values) {
+        const ctx = document.getElementById('dealerChart').getContext('2d');
+
+        if (dealerChart) dealerChart.destroy();
+
+        dealerChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Number of Cars',
+              data: values,
+              backgroundColor: 'rgba(240, 228, 216, 0.7)',
+              borderColor: 'rgba(213, 196, 184, 1)',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              title: {
+                display: true,
+                text: 'Top 10 Dealers City by Car Inventory',
+                font: { size: 18, weight: '300' },
+                color: '#2D2D2B'
+              }
+            },
+            scales: {
+              x: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Number of Cars',
+                  color: '#8B7D7D'
+                },
+                ticks: { color: '#8B7D7D' },
+                grid: { color: 'rgba(232, 222, 210, 0.5)' }
+              },
+              y: {
+                ticks: { color: '#8B7D7D' },
+                grid: { display: false }
+              }
+            }
+          }
+        });
+      }
+
+      /* ===================================================
+         FUNCTION: updateTable(cars)
+         =================================================== */
+      function updateTable(cars) {
+        const tbody = document.querySelector("#carsTable tbody");
+        tbody.innerHTML = "";
+
+        if (cars.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" class="no-data">No cars found matching your criteria</td></tr>`;
+          return;
+        }
+
+        cars.forEach(car => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+          <td>${car._id}</td>
+          <td>${car.Model}</td>
+          <td>${car.Manufacturer.Manufacturer}</td>
+          <td>${car.YearOfManufacturing}</td>
+          <td>${car.FuelType}</td>
+          <td>${car.EngineSize}L</td>
+          <td>${Math.round(car.Mileage).toLocaleString()}</td>
+          <td>$${Math.round(car.Price).toLocaleString()}</td>
+          <td>${car.Dealer.DealerCity}</td>
+        `;
+          tbody.appendChild(row);
+        });
+      }
+
+      /* ===================================================
+         FUNCTION: loadManufacturers()
+         =================================================== */
+      async function loadManufacturers() {
+        try {
+          const res = await fetch('/manufacturers');
+          const manufacturers = await res.json();
+          const select = document.getElementById('manufacturer');
+
+          manufacturers.forEach(mfr => {
+            const option = document.createElement('option');
+            option.value = mfr;
+            option.textContent = mfr;
+            select.appendChild(option);
+          });
+        } catch (err) {
+          console.error('Error loading manufacturers:', err);
+        }
+      }
+
+      /* ===================================================
+         INITIALIZATION
+         =================================================== */
+      loadManufacturers();
+      loadDashboard();
+    </script>
+</body>
+
+</html>
